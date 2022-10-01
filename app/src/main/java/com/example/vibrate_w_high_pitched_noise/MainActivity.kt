@@ -3,8 +3,12 @@ package com.example.vibrate_w_high_pitched_noise
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.graphics.Color
 import android.os.*
+import android.view.View
 import android.view.WindowManager
+import android.widget.Toast
+import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import be.tarsos.dsp.AudioDispatcher
 import be.tarsos.dsp.AudioProcessor
@@ -29,14 +33,14 @@ class MainActivity : Activity() {
 
         this.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 101)
         var dispatcher: AudioDispatcher =
-            AudioDispatcherFactory.fromDefaultMicrophone(22050, 16384, 0)
+            AudioDispatcherFactory.fromDefaultMicrophone(44100, 16384, 0)
 
         val pdh = PitchDetectionHandler { res, _ ->
             val pitchInHz = res.pitch
             runOnUiThread { processPitch(pitchInHz) }
         }
         val pitchProcessor: AudioProcessor =
-            PitchProcessor(PitchEstimationAlgorithm.FFT_YIN, 22050F, 16384, pdh)
+            PitchProcessor(PitchEstimationAlgorithm.FFT_YIN, 44100F, 16384, pdh)
         dispatcher.addAudioProcessor(pitchProcessor)
 
         var audioThread = Thread(dispatcher, "Audio Thread")
@@ -47,9 +51,10 @@ class MainActivity : Activity() {
         button.setOnClickListener {
             // your code to perform when the user clicks on the button
             if (button.text == "start") {
-                button.text = "stop"
+                button.text = ""
+                button.setBackgroundColor(Color.TRANSPARENT)
                 if (dispatcher.isStopped) {
-                    dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(22050, 16384, 0)
+                    dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(44100, 16384, 0)
                     dispatcher.addAudioProcessor(pitchProcessor)
                     audioThread = Thread(dispatcher, "Audio Thread")
                 }
@@ -60,13 +65,16 @@ class MainActivity : Activity() {
                 }
                 audioThread.join()
                 button.text = "start"
+                button.setBackgroundColor(Color.DKGRAY)
             }
         }
     }
 
     private fun processPitch(pitchInHz: Float) {
+
         if (pitchInHz > 1000) {
             vibrate(1000)
+            // Toast.makeText(this, pitchInHz.toString(), Toast.LENGTH_SHORT).show()
         }
     }
 
