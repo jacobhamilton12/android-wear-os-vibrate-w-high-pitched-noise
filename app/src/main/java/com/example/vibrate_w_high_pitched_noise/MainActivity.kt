@@ -31,30 +31,41 @@ class MainActivity : Activity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+        // Generally, the higher the sampleRate and lower the bufferSize the better
+        // Higher sample rate uses more data and processing power
+        // in this case 40000 better detects than 50000
+        val sampleRate = 40000
+        // low bufferSize can become to low relative to sample rate in which it will stop working
+        val bufferSize = 8192
         this.requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), 101)
         var dispatcher: AudioDispatcher =
-            AudioDispatcherFactory.fromDefaultMicrophone(44100, 16384, 0)
+            AudioDispatcherFactory.fromDefaultMicrophone(sampleRate, bufferSize, 0)
 
         val pdh = PitchDetectionHandler { res, _ ->
             val pitchInHz = res.pitch
             runOnUiThread { processPitch(pitchInHz) }
         }
+        // Algorithm options:
+        //        YIN, <-- good
+        //        MPM, <-- best
+        //        FFT_YIN, <-- best
+        //        DYNAMIC_WAVELET, <-- breaks audio recorder
+        //        FFT_PITCH, <-- doesnt work
+        //        AMDF; <-- doesnt work
         val pitchProcessor: AudioProcessor =
-            PitchProcessor(PitchEstimationAlgorithm.FFT_YIN, 44100F, 16384, pdh)
+            PitchProcessor(PitchEstimationAlgorithm.MPM, sampleRate.toFloat(), bufferSize, pdh)
         dispatcher.addAudioProcessor(pitchProcessor)
 
         var audioThread = Thread(dispatcher, "Audio Thread")
 
         val button = binding.button
-
-        // set on-click listener
+        
         button.setOnClickListener {
-            // your code to perform when the user clicks on the button
             if (button.text == "start") {
                 button.text = ""
                 button.setBackgroundColor(Color.TRANSPARENT)
                 if (dispatcher.isStopped) {
-                    dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(44100, 16384, 0)
+                    dispatcher = AudioDispatcherFactory.fromDefaultMicrophone(sampleRate, bufferSize, 0)
                     dispatcher.addAudioProcessor(pitchProcessor)
                     audioThread = Thread(dispatcher, "Audio Thread")
                 }
@@ -71,8 +82,8 @@ class MainActivity : Activity() {
     }
 
     private fun processPitch(pitchInHz: Float) {
-
-        if (pitchInHz > 1000) {
+        //Toast.makeText(this, pitchInHz.toString(), Toast.LENGTH_SHORT).show()
+        if (pitchInHz > 1000 && pitchInHz < 10000) {
             vibrate(1000)
             // Toast.makeText(this, pitchInHz.toString(), Toast.LENGTH_SHORT).show()
         }
