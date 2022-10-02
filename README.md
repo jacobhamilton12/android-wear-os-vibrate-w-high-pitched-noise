@@ -12,7 +12,10 @@ This could also be useful for hearing impaired people to notice noises they may 
 
 TODO: Add a tracking system to see how many times it was used that night
 
-Resources used when making this project (I used a whole lot more but these are the only ones relevant in the end):
+### Dependency:
+[Github project the pitch detection alg came from](https://github.com/jacobhamilton12/TarsosDSP)
+
+### Resources used when making this project (I used a whole lot more but these are the only ones relevant in the end):
 * https://stackoverflow.com/questions/59797841/android-how-to-call-a-function-on-click-of-an-invisible-button
 * https://stackoverflow.com/questions/73605027/promlem-with-pairing-device-using-wifi-in-android-studio/73605270#73605270
 * https://support.focusrite.com/hc/en-gb/articles/115004120965-Sample-Rate-Bit-Depth-Buffer-Size-Explained
